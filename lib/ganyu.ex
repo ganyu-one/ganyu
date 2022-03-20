@@ -6,8 +6,6 @@ defmodule Ganyu do
   use Application
 
   def start(_type, _args) do
-    :ets.new(:bruh, [:named_table, :set, :public])
-
     children = [
       Plug.Cowboy.child_spec(
         scheme: :http,
@@ -16,7 +14,7 @@ defmodule Ganyu do
       )
     ]
 
-    opts = [strategy: :one_for_one, name: Ganyu.Supervisor]
+    opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
 
     Supervisor.start_link(children, opts)
   end

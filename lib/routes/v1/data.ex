@@ -7,7 +7,8 @@ defmodule Ganyu.Router.V1.Data do
 
   @spec select_random :: %{id: String.t(), url: String.t()}
   def select_random do
-    path = "#{@proxy_path}/#{data() |> Enum.random()}"
+    # "#{@proxy_path}/#{}"
+    path = data() |> Enum.random()
 
     id =
       path
@@ -37,29 +38,37 @@ defmodule Ganyu.Router.V1.Data do
       "img-original/img/2021/04/02/02/13/06/88868181_p0.jpg",
       "img-original/img/2021/04/07/19/25/43/88997747_p0.jpg",
       "img-original/img/2021/05/23/20/14/48/90045253_p0.png",
+      "img-original/img/2021/06/06/17/21/02/90367181_p0.png",
       "img-original/img/2021/06/15/00/00/06/90561009_p0.jpg",
       "img-original/img/2021/06/29/00/13/34/90881391_p0.png",
       "img-original/img/2021/07/21/08/03/05/91388514_p0.png",
       "img-original/img/2021/08/07/07/37/32/91780715_p0.png",
       "img-original/img/2021/08/10/00/03/17/91856371_p0.jpg",
+      "img-original/img/2021/08/21/06/14/38/92140573_p0.png",
       "img-original/img/2021/08/21/11/10/05/92143634_p0.png",
+      "img-original/img/2021/08/24/10/30/08/92222865_p0.png",
       "img-original/img/2021/09/12/13/34/17/92689587_p0.jpg",
       "img-original/img/2021/09/20/15/51/15/92884804_p0.png",
+      "img-original/img/2021/09/22/23/20/00/92941979_p0.png",
       "img-original/img/2021/10/06/16/45/58/93261557_p0.jpg",
       "img-original/img/2021/10/10/00/00/02/93336306_p0.jpg",
       "img-original/img/2021/10/10/18/32/21/93354528_p0.jpg",
       "img-original/img/2021/10/24/18/30/48/93655526_p0.jpg",
+      "img-original/img/2021/10/26/16/08/32/93696488_p0.jpg",
       "img-original/img/2021/10/28/23/37/55/93744862_p0.jpg",
       "img-original/img/2021/10/31/00/02/44/93791448_p0.jpg",
       "img-original/img/2021/10/31/00/17/35/93792496_p0.jpg",
+      "img-original/img/2021/10/31/08/06/32/93800581_p0.png",
       "img-original/img/2021/11/04/23/32/44/93920392_p0.jpg",
       "img-original/img/2021/11/07/21/39/15/93986018_p0.png",
       "img-original/img/2021/11/13/06/21/19/94097039_p0.png",
       "img-original/img/2021/11/18/14/06/59/94208942_p0.jpg",
       "img-original/img/2021/11/20/14/46/20/94249924_p0.png",
+      "img-original/img/2021/11/28/00/00/06/94416462_p0.jpg",
       "img-original/img/2021/12/02/00/09/59/94505426_p0.jpg",
       "img-original/img/2021/12/02/07/10/44/94510053_p0.png",
       "img-original/img/2021/12/02/09/45/11/94028092_p0.png",
+      "img-original/img/2021/12/03/20/59/34/94539388_p0.png",
       "img-original/img/2021/12/05/23/05/53/94592968_p0.jpg",
       "img-original/img/2021/12/06/13/13/58/94603313_p0.png",
       "img-original/img/2021/12/12/00/00/04/94717529_p0.jpg",
@@ -122,7 +131,11 @@ defmodule Ganyu.Router.V1.Data do
       "img-original/img/2022/03/10/10/12/53/96807305_p0.jpg",
       "img-original/img/2022/03/11/16/24/12/96832488_p0.jpg",
       "img-original/img/2022/03/12/02/05/33/96845524_p0.jpg",
-      "img-original/img/2022/03/14/00/28/58/96894812_p0.jpg"
+      "img-original/img/2022/03/12/14/30/00/96853930_p0.jpg",
+      "img-original/img/2022/03/13/14/05/27/96878796_p0.jpg",
+      "img-original/img/2022/03/13/18/55/16/96885099_p0.png",
+      "img-original/img/2022/03/15/18/22/42/96894812_p0.jpg"
     ]
+    |> Enum.map(fn value -> "#{@proxy_path}/#{value}" end)
   end
 end

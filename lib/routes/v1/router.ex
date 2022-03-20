@@ -13,9 +13,9 @@ defmodule Ganyu.Router.V1 do
   plug(:match)
   plug(:dispatch)
 
-  get "/status" do
+  get "/all" do
     conn
-    |> Util.respond({:ok, %{total: length(Data.data())}})
+    |> Util.respond({:ok, Data.data()})
   end
 
   get "/json" do
@@ -23,9 +23,9 @@ defmodule Ganyu.Router.V1 do
     |> Util.respond({:ok, Data.select_random()})
   end
 
-  get "/all" do
+  get "/status" do
     conn
-    |> Util.respond({:ok, Data.data()})
+    |> Util.respond({:ok, %{total: length(Data.data())}})
   end
 
   options _ do

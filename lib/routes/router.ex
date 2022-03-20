@@ -41,11 +41,11 @@ defmodule Ganyu.Router do
 
         conn
         |> put_resp_content_type(content_type)
-        |> send_resp(200, b)
+        |> Util.respond({:ok, 200, b})
 
       c ->
         conn
-        |> send_resp(c, "")
+        |> Util.respond({:ok, c, ""})
     end
   end
 
