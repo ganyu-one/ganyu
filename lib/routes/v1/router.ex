@@ -14,11 +14,20 @@ defmodule Ganyu.Router.V1 do
   plug(:dispatch)
 
   match "/ping" do
+    forwarded = conn.req_headers |> List.keyfind("X-Forwarded-For", 0)
+
+    ip =
+      if forwarded do
+        forwarded
+      else
+        conn.remote_ip |> :inet_parse.ntoa() |> to_string()
+      end
+
     conn
     |> Util.respond(
       {:ok,
        %{
-         ip: conn.remote_ip |> :inet_parse.ntoa() |> to_string(),
+         ip: ip,
          "user-agent":
            conn.req_headers |> List.keyfind("user-agent", 0) |> Tuple.to_list() |> List.last(),
          method: conn.method
