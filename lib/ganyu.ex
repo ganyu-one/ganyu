@@ -1,7 +1,8 @@
 defmodule Ganyu do
-  @moduledoc """
-  `Ganyu` is an application for delievering random images from Pixiv of Ganyu.
-  """
+  readme_path = [__DIR__, "..", "README.md"] |> Path.join() |> Path.expand()
+
+  @external_resource readme_path
+  @moduledoc readme_path |> File.read!() |> String.trim()
 
   use Application
 
