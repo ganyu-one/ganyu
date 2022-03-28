@@ -134,7 +134,14 @@ defmodule Ganyu.Router.V1.Data do
       "img-original/img/2022/03/12/14/30/00/96853930_p0.jpg",
       "img-original/img/2022/03/13/14/05/27/96878796_p0.jpg",
       "img-original/img/2022/03/13/18/55/16/96885099_p0.png",
-      "img-original/img/2022/03/15/18/22/42/96894812_p0.jpg"
+      "img-original/img/2022/03/15/18/22/42/96894812_p0.jpg",
+      "img-original/img/2022/02/04/01/48/21/95984369_p0.jpg",
+      "img-original/img/2022/02/11/16/21/17/96158517_p0.jpg",
+      "img-original/img/2021/11/01/22/31/26/93855247_p0.jpg",
+      "img-original/img/2022/02/03/02/37/57/95961930_p0.jpg",
+      "img-original/img/2022/01/29/00/00/03/95838766_p0.jpg",
+      "img-original/img/2022/01/22/00/01/18/95680217_p0.jpg",
+      "img-original/img/2021/10/01/12/27/15/93140676_p0.png",
     ]
     |> Enum.map(fn value -> "#{@proxy_path}/#{value}" end)
   end
