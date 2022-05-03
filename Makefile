@@ -14,6 +14,7 @@ build:
 	MIX_ENV=${BUILD_ENV} mix release
 
 install:
+	rm -rf /opt/ganyu
 	cp ./_build/prod/rel/ganyu/ /opt/ganyu -r
 	cp ./ganyu.service /etc/systemd/system/
 	systemctl daemon-reload
