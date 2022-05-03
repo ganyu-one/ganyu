@@ -13,7 +13,7 @@ defmodule Ganyu.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :plug_cowboy],
+      extra_applications: [:logger, :plug_cowboy, :postgrex],
       mod: {Ganyu, []}
     ]
   end
