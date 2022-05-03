@@ -5,13 +5,14 @@ defmodule Ganyu.Database.Postgres do
 
   use GenServer
 
-  require Logger
+  @page_size 10
 
   def start_link(_args) do
     GenServer.start_link(__MODULE__, [], name: :ganyu_postgres_client)
   end
 
   @impl true
+  @spec init(any) :: {:ok, %{client: pid}}
   def init(_args) do
     {:ok, client} =
       Postgrex.start_link(
@@ -32,12 +33,12 @@ defmodule Ganyu.Database.Postgres do
   end
 
   @impl true
-  def handle_call({:get_all}, _from, state) do
+  def handle_call({:get_all, page}, _from, state) do
     {:ok, result} =
       Postgrex.query(
         state.client,
-        "SELECT id,url FROM images",
-        []
+        "SELECT id,url FROM images ORDER BY id ASC LIMIT #{@page_size} OFFSET $1",
+        [page * @page_size - 10]
       )
 
     {:reply, result |> result_to_maps, state}
@@ -97,9 +98,9 @@ defmodule Ganyu.Database.Postgres do
     }
   end
 
-  @spec select_all :: list(%{idx: String.t(), id: String.t(), url: String.t()})
-  def select_all do
-    rows = GenServer.call(:ganyu_postgres_client, {:get_all})
+  @spec select_all(integer()) :: list(%{idx: String.t(), id: String.t(), url: String.t()})
+  def select_all(page) do
+    rows = GenServer.call(:ganyu_postgres_client, {:get_all, page})
 
     rows
     |> Enum.map(fn %{"url" => image, "id" => id} ->

@@ -13,7 +13,7 @@ defmodule Ganyu do
         plug: Ganyu.Router,
         options: [port: Application.get_env(:ganyu, :port, 8080)]
       ),
-      Ganyu.Database.Postgres.child_spec(nil)
+      Ganyu.Database.Postgres.child_spec([])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]

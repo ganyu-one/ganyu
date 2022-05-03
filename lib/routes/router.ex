@@ -55,7 +55,7 @@ defmodule Ganyu.Router do
 
   options _ do
     conn
-    |> Util.respond({:ok})
+    |> Util.ok()
   end
 
   match _ do

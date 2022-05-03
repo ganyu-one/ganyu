@@ -20,25 +20,35 @@ defmodule Ganyu.Util do
   def respond(conn, {:ok, data}) do
     conn
     |> put_resp_header("content-type", "application/json")
-    |> respond({:ok, 200, Poison.encode!(%{success: true, data: data})})
+    |> respond({:ok, 200, Poison.encode!(%{success: true, data: data, message: nil})})
+  end
+
+  @spec respond(Plug.Conn.t(), {:error, integer}) :: Plug.Conn.t()
+  def respond(conn, {:error, status}) do
+    conn |> respond({:error, status, nil})
   end
 
   @spec respond(Plug.Conn.t(), {:error, integer, any}) :: Plug.Conn.t()
-  def respond(conn, {:error, status, data}) do
+  def respond(conn, {:error, status, message}) do
     conn
     |> put_resp_header("content-type", "application/json")
     |> respond(
       {:ok, status,
        Poison.encode!(%{
          success: false,
-         data: data
+         data: nil,
+         message: message
        })}
     )
+  end
+
+  def ok(conn) do
+    conn |> respond({:ok})
   end
 
   @spec not_found(Plug.Conn.t()) :: Plug.Conn.t()
   def not_found(conn) do
     conn
-    |> respond({:error, 404, %{message: "Not Found"}})
+    |> respond({:error, 404, "Not Found"})
   end
 end

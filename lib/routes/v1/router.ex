@@ -18,9 +18,7 @@ defmodule Ganyu.Router.V1 do
     |> Util.respond(
       {:ok,
        %{
-         "user-agent":
-           conn.req_headers |> List.keyfind("user-agent", 0) |> Tuple.to_list() |> List.last(),
-         method: conn.method
+         ping: :pong
        }}
     )
   end
@@ -31,13 +29,27 @@ defmodule Ganyu.Router.V1 do
   end
 
   get "/all" do
-    conn
-    |> Util.respond({:ok, Postgres.select_all()})
+    %Plug.Conn{params: %{"page" => page}} = fetch_query_params(conn)
+
+    case Integer.parse(page) do
+      :error ->
+        conn
+        |> Util.respond({:error, 400, "Page must be an integer"})
+
+      {page, _} ->
+        if page < 1 do
+          conn
+          |> Util.respond({:error, 400, "Page must be greater than 0"})
+        else
+          conn
+          |> Util.respond({:ok, Postgres.select_all(page)})
+        end
+    end
   end
 
   options _ do
     conn
-    |> Util.respond({:ok})
+    |> Util.ok()
   end
 
   match _ do
