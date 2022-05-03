@@ -1,0 +1,15 @@
+[Unit]
+Description=Ganyu as a service
+
+[Service]
+Type=simple
+Restart=on-failure
+Environment=MIX_ENV=prod
+Environment=LANG=en_US.UTF-8
+Environment=GANYU_PORT=3001
+
+ExecStart=/opt/ganyu/bin/ganyu start
+ExecStop=/opt/ganyu/bin/ganyu stop
+
+[Install]
+WantedBy=multi-user.target

@@ -5,11 +5,13 @@ defmodule Ganyu.Router do
 
   import Plug.Conn
 
+  alias Ganyu.Util
   alias Ganyu.Router.V1
-  alias Ganyu.Router.Util
-  alias Ganyu.Router.V1.Data
+  alias Ganyu.Database.Postgres
 
   use Plug.Router
+
+  plug(Plug.Logger, log: :info)
 
   plug(Corsica,
     origins: "*",
@@ -23,13 +25,10 @@ defmodule Ganyu.Router do
 
   forward("/v1", to: V1)
 
-  # see https://github.com/edgurgel/httpoison
-  # see https://ninenines.eu/docs/en/cowboy/2.4/manual/cowboy_stream/
-
   get "/" do
     %HTTPoison.Response{body: b, headers: h, status_code: s} =
       HTTPoison.get!(
-        Data.select_random().url,
+        Postgres.select_random().url,
         [{"referer", "https://www.pixiv.net/"}]
       )
 
@@ -47,6 +46,11 @@ defmodule Ganyu.Router do
         conn
         |> Util.respond({:ok, c, ""})
     end
+  end
+
+  get "/favicon.ico" do
+    conn
+    |> Util.respond({:ok, 204, ""})
   end
 
   options _ do

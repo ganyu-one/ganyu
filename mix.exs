@@ -23,7 +23,8 @@ defmodule Ganyu.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:poison, "~> 5.0"},
       {:corsica, "~> 1.0"},
-      {:httpoison, "~> 1.8"}
+      {:httpoison, "~> 1.8"},
+      {:postgrex, "~> 0.16.2"}
     ]
   end
 end

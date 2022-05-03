@@ -12,7 +12,8 @@ defmodule Ganyu do
         scheme: :http,
         plug: Ganyu.Router,
         options: [port: Application.get_env(:ganyu, :port, 8080)]
-      )
+      ),
+      Ganyu.Database.Postgres.child_spec(nil)
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]

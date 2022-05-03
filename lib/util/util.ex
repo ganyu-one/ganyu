@@ -1,4 +1,4 @@
-defmodule Ganyu.Router.Util do
+defmodule Ganyu.Util do
   @moduledoc """
   `Ganyu.Router.Util` is a utility package for Ganyu.
   """
