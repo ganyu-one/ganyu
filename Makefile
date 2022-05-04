@@ -1,4 +1,5 @@
 BUILD_ENV:=prod
+APP_NAME:=ganyu
 
 dev:
 	mix local.hex --force
@@ -13,8 +14,17 @@ build:
 	MIX_ENV=${BUILD_ENV} mix compile
 	MIX_ENV=${BUILD_ENV} mix release
 
-install:
-	rm -rf /opt/ganyu
-	cp ./_build/prod/rel/ganyu/ /opt/ganyu -r
-	cp ./ganyu.service /etc/systemd/system/
+uninstall:
+	systemctl stop ${APP_NAME}.service
+	systemctl disable ${APP_NAME}.service
+	rm -rf /etc/systemd/system/${APP_NAME}.service
+	rm -rf /opt/${APP_NAME}
+
+install: uninstall
+	cp ./_build/prod/rel/${APP_NAME}/ /opt/${APP_NAME} -r
+	cp ./${APP_NAME}.service /etc/systemd/system/
 	systemctl daemon-reload
+
+enable:
+	systemctl enable ${APP_NAME}.service
+	systemctl start ${APP_NAME}.service
