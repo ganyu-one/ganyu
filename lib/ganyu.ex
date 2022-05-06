@@ -17,6 +17,7 @@ defmodule Ganyu do
         plug: Ganyu.Router,
         options: [port: get_port()]
       ),
+      Ganyu.Metrics.Collector.child_spec([]),
       Ganyu.Database.Postgres.child_spec([])
     ]
 

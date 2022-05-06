@@ -5,16 +5,18 @@ defmodule Ganyu.Database.Postgres do
 
   use GenServer
 
+  alias Ganyu.Metrics.Collector
+
   require Logger
 
+  @client :ganyu_postgres_client
   @page_size 10
 
   def start_link(_args) do
-    GenServer.start_link(__MODULE__, [], name: :ganyu_postgres_client)
+    GenServer.start_link(__MODULE__, [], name: @client)
   end
 
   @impl true
-  @spec init(any) :: {:ok, %{client: pid}}
   def init(_args) do
     {:ok, client} =
       Postgrex.start_link(
@@ -25,52 +27,45 @@ defmodule Ganyu.Database.Postgres do
         port: 5432
       )
 
-    case Postgrex.query(
-           client,
-           "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)",
-           []
-         ) do
+    client |> init_call()
+
+    {:ok, %{client: client}}
+  end
+
+  defp init_call(client) do
+    query = "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)"
+
+    case Postgrex.query(client, query, []) do
       {:ok, res} ->
         res = res.messages |> List.first()
 
         Logger.debug("#{res.severity}: #{res.message}")
     end
-
-    {:ok, %{client: client}}
   end
 
   @impl true
   def handle_call({:get_all, page}, _from, state) do
-    {:ok, result} =
-      Postgrex.query(
-        state.client,
-        "SELECT id,url FROM images ORDER BY id ASC LIMIT #{@page_size} OFFSET $1",
-        [page * @page_size - 10]
-      )
+    query = "SELECT id,url FROM images ORDER BY id ASC LIMIT #{@page_size} OFFSET $1"
+
+    {:ok, result} = Postgrex.query(state[:client], query, [page * @page_size - 10])
 
     {:reply, result |> result_to_maps, state}
   end
 
   @impl true
   def handle_call({:get_random}, _from, state) do
-    {:ok, result} =
-      Postgrex.query(
-        state.client,
-        "SELECT id,url FROM images ORDER BY RANDOM() LIMIT 1",
-        []
-      )
+    query = "SELECT id,url FROM images ORDER BY RANDOM() LIMIT 1"
+
+    {:ok, result} = Postgrex.query(state[:client], query, [])
 
     {:reply, result |> result_to_maps, state}
   end
 
   @impl true
   def handle_call({:exists, url}, _from, state) do
-    {:ok, result} =
-      Postgrex.query(
-        state.client,
-        "SELECT id,url FROM images WHERE url = (?)",
-        [url]
-      )
+    query = "SELECT id,url FROM images WHERE url = (?)"
+
+    {:ok, result} = Postgrex.query(state[:client], query, [url])
 
     {:reply, result |> result_to_maps, state}
   end
@@ -84,51 +79,23 @@ defmodule Ganyu.Database.Postgres do
 
   @proxy_path Application.get_env(:ganyu, :proxy_path, "https://pximg.pxseu.com")
 
-  @spec select_random :: %{idx: String.t(), id: String.t(), url: String.t()}
-  def select_random do
-    %{"url" => image, "id" => id} =
-      GenServer.call(:ganyu_postgres_client, {:get_random}) |> List.first()
+  def select_random(proxy) do
+    response = GenServer.call(@client, {:get_random}) |> List.first()
 
-    path = "#{@proxy_path}/#{image}"
+    Collector.inc_images_served(1)
 
-    pid =
-      path
-      |> String.split("/")
-      |> List.last()
-      |> String.split("_")
-      |> List.first()
-
-    %{
-      idx: id,
-      id: pid,
-      url: path
-    }
+    response |> normalize_image(proxy)
   end
 
-  @spec select_all(integer()) :: list(%{idx: String.t(), id: String.t(), url: String.t()})
-  def select_all(page) do
-    rows = GenServer.call(:ganyu_postgres_client, {:get_all, page})
+  def select_all(proxy, page) do
+    rows = GenServer.call(@client, {:get_all, page})
+
+    Collector.inc_images_served(Enum.count(rows))
 
     rows
-    |> Enum.map(fn %{"url" => image, "id" => id} ->
-      path = "#{@proxy_path}/#{image}"
-
-      pid =
-        path
-        |> String.split("/")
-        |> List.last()
-        |> String.split("_")
-        |> List.first()
-
-      %{
-        idx: id,
-        id: pid,
-        url: path
-      }
-    end)
+    |> Enum.map(&normalize_image(&1, proxy))
   end
 
-  @spec data_includes(String.t()) :: boolean
   def data_includes(path) do
     real_path =
       if(path |> String.starts_with?(@proxy_path)) do
@@ -138,10 +105,30 @@ defmodule Ganyu.Database.Postgres do
         path
       end
 
-    response = GenServer.call(:ganyu_postgres_client, {:exists, real_path})
-
-    response
+    GenServer.call(@client, {:exists, real_path})
   end
+
+  # priv
+
+  defp normalize_image(%{"url" => path, "id" => idx}, proxy) do
+    id =
+      path
+      |> String.split("/")
+      |> List.last()
+      |> String.split("_")
+      |> List.first()
+
+    path = "#{use_proxy(proxy)}/#{path}"
+
+    %{
+      idx: idx,
+      id: id,
+      url: path
+    }
+  end
+
+  defp use_proxy(nil), do: @proxy_path
+  defp use_proxy(proxy), do: proxy
 
   defp result_to_maps(%Postgrex.Result{columns: _names, rows: nil}), do: []
 

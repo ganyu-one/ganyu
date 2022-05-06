@@ -13,25 +13,21 @@ defmodule Ganyu.Router.V1 do
   plug(:match)
   plug(:dispatch)
 
-  match "/ping" do
-    conn
-    |> Util.respond(
-      {:ok,
-       %{
-         ping: :pong
-       }}
-    )
-  end
-
   get "/single" do
     conn
-    |> Util.respond({:ok, Postgres.select_random()})
+    |> Util.respond({:ok, Postgres.select_random(nil)})
   end
 
   get "/all" do
-    %Plug.Conn{params: %{"page" => page}} = fetch_query_params(conn)
+    %Plug.Conn{params: params} = fetch_query_params(conn)
 
-    case Integer.parse(page) do
+    page =
+      case params do
+        %{"page" => page} -> Integer.parse(page)
+        _ -> {1, nil}
+      end
+
+    case page do
       :error ->
         conn
         |> Util.respond({:error, 400, "Page must be an integer"})
@@ -42,7 +38,7 @@ defmodule Ganyu.Router.V1 do
           |> Util.respond({:error, 400, "Page must be greater than 0"})
         else
           conn
-          |> Util.respond({:ok, Postgres.select_all(page)})
+          |> Util.respond({:ok, Postgres.select_all(nil, page)})
         end
     end
   end

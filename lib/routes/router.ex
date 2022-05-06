@@ -7,6 +7,7 @@ defmodule Ganyu.Router do
 
   alias Ganyu.Util
   alias Ganyu.Router.V1
+  alias Ganyu.Metrics.Collector
   alias Ganyu.Database.Postgres
 
   use Plug.Router
@@ -22,35 +23,52 @@ defmodule Ganyu.Router do
 
   plug(:match)
   plug(:dispatch)
+  plug(:metrics)
+
+  def metrics(conn, _) do
+    Collector.inc_requests(conn.status)
+
+    conn
+  end
 
   forward("/v1", to: V1)
 
   get "/" do
-    %HTTPoison.Response{body: b, headers: h, status_code: s} =
-      HTTPoison.get!(
-        Postgres.select_random().url,
-        [{"referer", "https://www.pixiv.net/"}]
-      )
+    try do
+      %HTTPoison.Response{body: b, headers: h, status_code: s} =
+        HTTPoison.get!(
+          Postgres.select_random("https://i.pximg.net/").url,
+          [{"referer", "https://www.pixiv.net/"}]
+        )
 
-    case s do
-      200 ->
-        {_, content_type} =
-          h
-          |> List.keyfind("Content-Type", 0)
+      case s do
+        200 ->
+          conn
+          |> merge_resp_headers(
+            h
+            |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
+          )
+          |> Util.respond({:ok, 200, b})
 
+        c ->
+          conn
+          |> Util.respond({:ok, c, ""})
+      end
+    rescue
+      HTTPoison.Error ->
         conn
-        |> put_resp_content_type(content_type)
-        |> Util.respond({:ok, 200, b})
-
-      c ->
-        conn
-        |> Util.respond({:ok, c, ""})
+        |> Util.respond({:error, 500, "Internal Server Error"})
     end
   end
 
   get "/favicon.ico" do
     conn
     |> Util.respond({:ok, 204, ""})
+  end
+
+  get "/analytics" do
+    conn
+    |> Util.respond({:ok, Collector.get_state()})
   end
 
   options _ do
