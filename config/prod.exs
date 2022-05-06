@@ -1,5 +1,5 @@
-use Mix.Config
+import Config
 
 config :ganyu,
-  port: 8081,
+  port: 80,
   proxy_path: "https://pximg.pxseu.com"

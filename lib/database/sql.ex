@@ -5,6 +5,8 @@ defmodule Ganyu.Database.Postgres do
 
   use GenServer
 
+  require Logger
+
   @page_size 10
 
   def start_link(_args) do
@@ -23,11 +25,16 @@ defmodule Ganyu.Database.Postgres do
         port: 5432
       )
 
-    Postgrex.prepare(
-      client,
-      "create_database",
-      "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)"
-    )
+    case Postgrex.query(
+           client,
+           "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)",
+           []
+         ) do
+      {:ok, res} ->
+        res = res.messages |> List.first()
+
+        Logger.debug("#{res.severity}: #{res.message}")
+    end
 
     {:ok, %{client: client}}
   end

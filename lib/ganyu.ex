@@ -9,7 +9,7 @@ defmodule Ganyu do
   require Logger
 
   def start(_type, _args) do
-    Logger.log(:info, "Starting Ganyu...")
+    Logger.info("Starting #{__MODULE__ |> to_string}...")
 
     children = [
       Plug.Cowboy.child_spec(
@@ -24,7 +24,7 @@ defmodule Ganyu do
 
     {:ok, pid} = Supervisor.start_link(children, opts)
 
-    Logger.log(:info, "Ganyu is running on http://localhost:#{get_port()}")
+    Logger.info("#{__MODULE__ |> to_string} is running on http://localhost:#{get_port()}")
 
     {:ok, pid}
   end
