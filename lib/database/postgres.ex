@@ -62,8 +62,17 @@ defmodule Ganyu.Database.Postgres do
   end
 
   @impl true
+  def handle_call({:get_by_id, id}, _from, state) do
+    query = "SELECT id,url FROM images WHERE id = ($1)"
+
+    {:ok, result} = Postgrex.query(state[:client], query, [id])
+
+    {:reply, result |> result_to_maps, state}
+  end
+
+  @impl true
   def handle_call({:exists, url}, _from, state) do
-    query = "SELECT id,url FROM images WHERE url = (?)"
+    query = "SELECT id,url FROM images WHERE url = ($1)"
 
     {:ok, result} = Postgrex.query(state[:client], query, [url])
 
@@ -79,7 +88,7 @@ defmodule Ganyu.Database.Postgres do
 
   @proxy_path Application.get_env(:ganyu, :proxy_path, "https://pximg.pxseu.com")
 
-  def select_random(proxy) do
+  def select_random(proxy \\ nil) do
     response = GenServer.call(@client, {:get_random}) |> List.first()
 
     Collector.inc_images_served(1)
@@ -87,13 +96,21 @@ defmodule Ganyu.Database.Postgres do
     response |> normalize_image(proxy)
   end
 
-  def select_all(proxy, page) do
+  def select_all(page, proxy \\ nil) do
     rows = GenServer.call(@client, {:get_all, page})
 
     Collector.inc_images_served(Enum.count(rows))
 
     rows
     |> Enum.map(&normalize_image(&1, proxy))
+  end
+
+  def select_by_idx(idx, proxy \\ nil) do
+    response = GenServer.call(@client, {:get_by_id, idx}) |> List.first()
+
+    Collector.inc_images_served(1)
+
+    response |> normalize_image(proxy)
   end
 
   def data_includes(path) do
@@ -109,6 +126,8 @@ defmodule Ganyu.Database.Postgres do
   end
 
   # priv
+
+  defp normalize_image(res, _) when is_nil(res), do: nil
 
   defp normalize_image(%{"url" => path, "id" => idx}, proxy) do
     id =

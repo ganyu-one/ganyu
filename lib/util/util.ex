@@ -42,6 +42,16 @@ defmodule Ganyu.Util do
     )
   end
 
+  def parse_int(str, base \\ 10)
+  def parse_int(nil, _), do: :error
+
+  def parse_int(str, base) do
+    case Integer.parse(str, base) do
+      {int, _} -> int
+      _ -> :error
+    end
+  end
+
   def ok(conn) do
     conn |> respond({:ok})
   end

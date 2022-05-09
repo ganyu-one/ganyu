@@ -55,7 +55,7 @@ defmodule Ganyu.Router do
           |> Util.respond({:ok, c, ""})
       end
     rescue
-      HTTPoison.Error ->
+      _ ->
         conn
         |> Util.respond({:error, 500, "Internal Server Error"})
     end
@@ -63,12 +63,8 @@ defmodule Ganyu.Router do
 
   get "/favicon.ico" do
     conn
+    |> put_resp_header("cache-control", "public, max-age=86400")
     |> Util.respond({:ok, 204, ""})
-  end
-
-  get "/analytics" do
-    conn
-    |> Util.respond({:ok, Collector.get_state()})
   end
 
   options _ do

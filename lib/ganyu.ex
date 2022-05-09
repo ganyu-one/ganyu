@@ -13,21 +13,20 @@ defmodule Ganyu do
 
     children = [
       Plug.Cowboy.child_spec(
+        ip: {0, 0, 0, 0},
         scheme: :http,
         plug: Ganyu.Router,
         options: [port: get_port()]
       ),
-      Ganyu.Metrics.Collector.child_spec([]),
-      Ganyu.Database.Postgres.child_spec([])
+      Ganyu.Metrics.Collector,
+      Ganyu.Database.Postgres
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
 
-    {:ok, pid} = Supervisor.start_link(children, opts)
-
     Logger.info("#{__MODULE__ |> to_string} is running on http://localhost:#{get_port()}")
 
-    {:ok, pid}
+    Supervisor.start_link(children, opts)
   end
 
   defp get_port() do
