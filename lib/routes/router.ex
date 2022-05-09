@@ -34,9 +34,11 @@ defmodule Ganyu.Router do
   forward("/v1", to: V1)
 
   get "/" do
+    image = Postgres.select_random("https://i.pximg.net/")
+
     %HTTPoison.Response{body: b, headers: h, status_code: s} =
       HTTPoison.get!(
-        Postgres.select_random("https://i.pximg.net/").url,
+        image.url,
         [{"referer", "https://www.pixiv.net/"}]
       )
 
@@ -47,6 +49,7 @@ defmodule Ganyu.Router do
           h
           |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
         )
+        |> put_resp_header("x-image-idx", image.idx)
         |> Util.respond({:ok, 200, b})
 
       c ->
