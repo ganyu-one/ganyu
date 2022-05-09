@@ -49,7 +49,7 @@ defmodule Ganyu.Router do
           h
           |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
         )
-        |> put_resp_header("x-image-idx", image.idx)
+        |> put_resp_header("x-image-idx", image.idx |> to_string)
         |> Util.respond({:ok, 200, b})
 
       c ->
