@@ -34,30 +34,24 @@ defmodule Ganyu.Router do
   forward("/v1", to: V1)
 
   get "/" do
-    try do
-      %HTTPoison.Response{body: b, headers: h, status_code: s} =
-        HTTPoison.get!(
-          Postgres.select_random("https://i.pximg.net/").url,
-          [{"referer", "https://www.pixiv.net/"}]
-        )
+    %HTTPoison.Response{body: b, headers: h, status_code: s} =
+      HTTPoison.get!(
+        Postgres.select_random("https://i.pximg.net/").url,
+        [{"referer", "https://www.pixiv.net/"}]
+      )
 
-      case s do
-        200 ->
-          conn
-          |> merge_resp_headers(
-            h
-            |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
-          )
-          |> Util.respond({:ok, 200, b})
-
-        c ->
-          conn
-          |> Util.respond({:ok, c, ""})
-      end
-    rescue
-      _ ->
+    case s do
+      200 ->
         conn
-        |> Util.respond({:error, 500, "Internal Server Error"})
+        |> merge_resp_headers(
+          h
+          |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
+        )
+        |> Util.respond({:ok, 200, b})
+
+      c ->
+        conn
+        |> Util.respond({:ok, c, ""})
     end
   end
 
