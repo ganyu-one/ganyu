@@ -24,7 +24,5 @@ install: uninstall
 	cp ./_build/prod/rel/${APP_NAME}/ /opt/${APP_NAME} -r
 	cp ./${APP_NAME}.service /etc/systemd/system/
 	systemctl daemon-reload
-
-enable:
 	systemctl enable ${APP_NAME}.service
 	systemctl start ${APP_NAME}.service
