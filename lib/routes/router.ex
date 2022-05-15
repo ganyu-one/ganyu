@@ -11,6 +11,7 @@ defmodule Ganyu.Router do
   alias Ganyu.Database.Postgres
 
   use Plug.Router
+  use Plug.ErrorHandler
 
   plug(Plug.Logger, log: :info)
 
@@ -34,27 +35,29 @@ defmodule Ganyu.Router do
   forward("/v1", to: V1)
 
   get "/" do
-    image = Postgres.select_random("https://i.pximg.net/")
+    %{url: url, idx: idx} = Postgres.select_random()
 
     %HTTPoison.Response{body: b, headers: h, status_code: s} =
       HTTPoison.get!(
-        image.url,
+        url,
         [{"referer", "https://www.pixiv.net/"}]
       )
 
     case s do
       200 ->
-        conn
-        |> merge_resp_headers(
+        {_, content_type} =
           h
-          |> Enum.map(fn {k, v} -> {k |> String.downcase(), v} end)
-        )
-        |> put_resp_header("x-image-idx", image.idx |> to_string)
-        |> Util.respond({:ok, 200, b})
+          |> Util.lower_headers()
+          |> List.keyfind("content-type", 0)
 
-      c ->
         conn
-        |> Util.respond({:ok, c, ""})
+        |> put_resp_header("content-type", content_type)
+        |> put_resp_header("x-image-idx", idx |> to_string)
+        |> Util.respond({:ok, s, b})
+
+      _ ->
+        conn
+        |> Util.internal_error()
     end
   end
 
@@ -72,5 +75,10 @@ defmodule Ganyu.Router do
   match _ do
     conn
     |> Util.not_found()
+  end
+
+  defp handle_errors(conn, _) do
+    conn
+    |> Util.internal_error()
   end
 end

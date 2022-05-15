@@ -12,18 +12,18 @@ defmodule Ganyu.Database.Postgres do
   @client :ganyu_postgres_client
   @page_size 10
 
-  def start_link(_args) do
-    GenServer.start_link(__MODULE__, [], name: @client)
+  def start_link(data) do
+    GenServer.start_link(__MODULE__, data, name: @client)
   end
 
   @impl true
-  def init(_args) do
+  def init([hostname, username, password, database]) do
     {:ok, client} =
       Postgrex.start_link(
-        hostname: "localhost",
-        username: "postgres",
-        password: "postgres",
-        database: "ganyu",
+        hostname: hostname,
+        username: username,
+        password: password,
+        database: database,
         port: 5432
       )
 

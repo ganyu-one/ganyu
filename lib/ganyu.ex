@@ -13,13 +13,12 @@ defmodule Ganyu do
 
     children = [
       Plug.Cowboy.child_spec(
-        ip: {0, 0, 0, 0},
         scheme: :http,
         plug: Ganyu.Router,
         options: [port: get_port()]
       ),
-      Ganyu.Metrics.Collector,
-      Ganyu.Database.Postgres
+      {Ganyu.Database.Postgres, get_db_config()},
+      Ganyu.Metrics.Collector
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]
@@ -31,5 +30,26 @@ defmodule Ganyu do
 
   defp get_port() do
     Application.get_env(:ganyu, :port, 8080)
+  end
+
+  defp get_db_config() do
+    [
+      Application.get_env(
+        :ganyu,
+        :postgres_hostname
+      ),
+      Application.get_env(
+        :ganyu,
+        :postgres_username
+      ),
+      Application.get_env(
+        :ganyu,
+        :postgres_password
+      ),
+      Application.get_env(
+        :ganyu,
+        :postgres_database
+      )
+    ]
   end
 end
