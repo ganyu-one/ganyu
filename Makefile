@@ -22,7 +22,8 @@ uninstall:
 
 install: uninstall
 	cp ./_build/prod/rel/${APP_NAME}/ /opt/${APP_NAME} -r
-	cp ./${APP_NAME}.service /etc/systemd/system/
+	cp ./project.service /etc/systemd/system/${APP_NAME}.service
+	sed -i "s/{PROJECT_NAME}/${APP_NAME}/g" /etc/systemd/system/${APP_NAME}.service
 	systemctl daemon-reload
 	systemctl enable ${APP_NAME}.service
 	systemctl start ${APP_NAME}.service
