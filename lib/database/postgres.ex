@@ -35,12 +35,7 @@ defmodule Ganyu.Database.Postgres do
   defp init_call(client) do
     query = "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)"
 
-    case Postgrex.query(client, query, []) do
-      {:ok, res} ->
-        res = res.messages |> List.first()
-
-        Logger.debug("#{res.severity}: #{res.message}")
-    end
+    {:ok, _} = Postgrex.query(client, query, [])
   end
 
   @impl true
