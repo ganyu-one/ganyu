@@ -49,6 +49,10 @@ defmodule Ganyu do
       Application.get_env(
         :ganyu,
         :postgres_database
+      ),
+      Application.get_env(
+        :ganyu,
+        :proxy_path
       )
     ]
   end

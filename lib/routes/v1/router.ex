@@ -3,8 +3,6 @@ defmodule Ganyu.Router.V1 do
   `Ganyu.Router` is a router for Ganyu.
   """
 
-  import Plug.Conn
-
   alias Ganyu.Util
   alias Ganyu.Metrics.Collector
   alias Ganyu.Router.V1.Image

@@ -77,7 +77,7 @@ defmodule Ganyu.Router do
     |> Util.not_found()
   end
 
-  defp handle_errors(conn, _) do
+  def handle_errors(conn, _) do
     conn
     |> Util.internal_error()
   end

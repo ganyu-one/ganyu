@@ -21,7 +21,7 @@ defmodule Ganyu.Router.V1.Image do
   get "/all" do
     %Plug.Conn{params: params} = fetch_query_params(conn)
 
-    case Util.parse_int(params["page"]) do
+    case params["page"] |> Util.parse_int() do
       :error ->
         conn
         |> Util.respond({:error, 400, "Query page must be an integer"})
@@ -39,27 +39,30 @@ defmodule Ganyu.Router.V1.Image do
   get "/:idx" do
     %Plug.Conn{path_params: params} = conn
 
-    indx = Util.parse_int(params["idx"])
+    indx = params["idx"] |> Util.parse_int()
 
-    case indx do
-      :error ->
+    idx =
+      case indx do
+        :error ->
+          conn
+          |> Util.respond({:error, 400, "Query idx must be an integer"})
+
+        idx when idx < 1 ->
+          conn
+          |> Util.respond({:error, 400, "Query idx must be greater than 0"})
+
+        idx ->
+          idx
+      end
+
+    case idx |> Postgres.select_by_idx() do
+      nil ->
         conn
-        |> Util.respond({:error, 400, "Query idx must be an integer"})
+        |> Util.not_found("Image not found")
 
-      idx when idx < 1 ->
+      post ->
         conn
-        |> Util.respond({:error, 400, "Query idx must be greater than 0"})
-
-      idx ->
-        case Postgres.select_by_idx(idx) do
-          nil ->
-            conn
-            |> Util.not_found()
-
-          post ->
-            conn
-            |> Util.respond({:ok, post})
-        end
+        |> Util.respond({:ok, post})
     end
   end
 

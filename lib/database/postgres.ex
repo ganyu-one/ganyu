@@ -17,7 +17,7 @@ defmodule Ganyu.Database.Postgres do
   end
 
   @impl true
-  def init([hostname, username, password, database]) do
+  def init([hostname, username, password, database, proxy_path]) do
     {:ok, client} =
       Postgrex.start_link(
         hostname: hostname,
@@ -29,7 +29,7 @@ defmodule Ganyu.Database.Postgres do
 
     client |> init_call()
 
-    {:ok, %{client: client}}
+    {:ok, %{client: client, proxy: proxy_path}}
   end
 
   defp init_call(client) do
@@ -44,7 +44,11 @@ defmodule Ganyu.Database.Postgres do
 
     {:ok, result} = Postgrex.query(state[:client], query, [page * @page_size - 10])
 
-    {:reply, result |> result_to_maps, state}
+    {:reply,
+     %{
+       rows: result |> result_to_maps,
+       proxy: state[:proxy]
+     }, state}
   end
 
   @impl true
@@ -53,7 +57,11 @@ defmodule Ganyu.Database.Postgres do
 
     {:ok, result} = Postgrex.query(state[:client], query, [])
 
-    {:reply, result |> result_to_maps, state}
+    {:reply,
+     %{
+       rows: result |> result_to_maps |> List.first(),
+       proxy: state[:proxy]
+     }, state}
   end
 
   @impl true
@@ -62,16 +70,11 @@ defmodule Ganyu.Database.Postgres do
 
     {:ok, result} = Postgrex.query(state[:client], query, [id])
 
-    {:reply, result |> result_to_maps, state}
-  end
-
-  @impl true
-  def handle_call({:exists, url}, _from, state) do
-    query = "SELECT id,url FROM images WHERE url = ($1)"
-
-    {:ok, result} = Postgrex.query(state[:client], query, [url])
-
-    {:reply, result |> result_to_maps, state}
+    {:reply,
+     %{
+       rows: result |> result_to_maps |> List.first(),
+       proxy: state[:proxy]
+     }, state}
   end
 
   @impl true
@@ -80,19 +83,30 @@ defmodule Ganyu.Database.Postgres do
   end
 
   # public api with pretty formatting
+  @spec select_random :: %{id: String.t(), idx: integer(), url: String.t()}
+  def select_random() do
+    %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_random})
 
-  @proxy_path Application.get_env(:ganyu, :proxy_path, "https://pximg.pxseu.com")
-
-  def select_random(proxy \\ nil) do
-    response = GenServer.call(@client, {:get_random}) |> List.first()
+    Logger.info("Served image: \##{rows["id"]}")
 
     Collector.inc_images_served(1)
 
-    response |> normalize_image(proxy)
+    # could possibly return nil? but shouldnt really
+    rows |> normalize_image(proxy)
   end
 
-  def select_all(page, proxy \\ nil) do
-    rows = GenServer.call(@client, {:get_all, page})
+  @spec select_by_idx(integer()) :: %{id: String.t(), idx: integer(), url: String.t()} | nil
+  def select_by_idx(idx) do
+    %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_by_id, idx})
+
+    Collector.inc_images_served(1)
+
+    rows |> normalize_image(proxy)
+  end
+
+  @spec select_all(integer()) :: list(%{id: String.t(), idx: integer(), url: String.t()})
+  def select_all(page) do
+    %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_all, page})
 
     Collector.inc_images_served(Enum.count(rows))
 
@@ -100,30 +114,7 @@ defmodule Ganyu.Database.Postgres do
     |> Enum.map(&normalize_image(&1, proxy))
   end
 
-  def select_by_idx(idx, proxy \\ nil) do
-    response = GenServer.call(@client, {:get_by_id, idx}) |> List.first()
-
-    Collector.inc_images_served(1)
-
-    response |> normalize_image(proxy)
-  end
-
-  def data_includes(path) do
-    real_path =
-      if(path |> String.starts_with?(@proxy_path)) do
-        path
-        |> String.replace(@proxy_path, "")
-      else
-        path
-      end
-
-    GenServer.call(@client, {:exists, real_path})
-  end
-
   # priv
-
-  defp normalize_image(res, _) when is_nil(res), do: nil
-
   defp normalize_image(%{"url" => path, "id" => idx}, proxy) do
     id =
       path
@@ -132,17 +123,12 @@ defmodule Ganyu.Database.Postgres do
       |> String.split("_")
       |> List.first()
 
-    path = "#{use_proxy(proxy)}/#{path}"
-
     %{
       idx: idx,
       id: id,
-      url: path
+      url: "#{proxy}/#{path}"
     }
   end
-
-  defp use_proxy(nil), do: @proxy_path
-  defp use_proxy(proxy), do: proxy
 
   defp result_to_maps(%Postgrex.Result{columns: _names, rows: nil}), do: []
 
