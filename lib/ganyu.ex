@@ -16,7 +16,8 @@ defmodule Ganyu do
         strategy: ClusterHop.Strategy.Deployment,
         config: [
           hop_token: Application.get_env(:ganyu, :hop_token),
-          app_prefix: __MODULE__ |> to_string |> String.split(".") |> List.last()
+          app_prefix:
+            __MODULE__ |> to_string |> String.split(".") |> List.last() |> String.downcase()
         ]
       ]
     ]

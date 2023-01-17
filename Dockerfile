@@ -22,6 +22,8 @@ RUN \
 
 FROM elixir:1.13-alpine
 
+ENV RELEASE_DISTRIBUTION=none
+
 COPY --from=build /app/_build/prod/rel/ganyu /opt/ganyu
 
 CMD [ "/opt/ganyu/bin/ganyu", "start" ]
