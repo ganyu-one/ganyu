@@ -4,6 +4,8 @@ ENV MIX_ENV=prod
 
 WORKDIR /app
 
+RUN apk add --no-cache git
+
 # get deps first so we have a cache
 ADD mix.exs mix.lock /app/
 RUN \
