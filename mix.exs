@@ -24,7 +24,10 @@ defmodule Ganyu.MixProject do
       {:poison, "~> 5.0"},
       {:corsica, "~> 1.0"},
       {:httpoison, "~> 1.8"},
-      {:postgrex, "~> 0.16.2"}
+      {:postgrex, "~> 0.16.2"},
+      {:libcluster, "~> 3.3"},
+      {:libcluster_hop,
+       github: "hiett/libcluster_hop", ref: "6e3a00d2e8e8ea0388135d8c000b999536021909"}
     ]
   end
 end

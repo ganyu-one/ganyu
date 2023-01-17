@@ -11,14 +11,25 @@ defmodule Ganyu do
   def start(_type, _args) do
     Logger.info("Starting #{__MODULE__ |> to_string}...")
 
+    topologies = [
+      hop: [
+        strategy: ClusterHop.Strategy.Deployment,
+        config: [
+          hop_token: Application.get_env(:ganyu, :hop_token),
+          app_prefix: __MODULE__ |> to_string |> String.split(".") |> List.last()
+        ]
+      ]
+    ]
+
     children = [
+      {Cluster.Supervisor, [topologies, [name: __MODULE__.ClusterSupervisor]]},
+      {__MODULE__.Database.Postgres, get_db_config()},
       Plug.Cowboy.child_spec(
         scheme: :http,
-        plug: Ganyu.Router,
+        plug: __MODULE__.Router,
         options: [port: get_port()]
       ),
-      {Ganyu.Database.Postgres, get_db_config()},
-      Ganyu.Metrics.Collector
+      __MODULE__.Metrics.Collector
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__.Supervisor]

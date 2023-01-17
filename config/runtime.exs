@@ -24,4 +24,5 @@ if config_env() == :prod do
         "GANYU_POSTGRES_DATABASE",
         "ganyu"
       )
+    hop_token: System.get_env("GANYU_HOP_TOKEN")
 end
