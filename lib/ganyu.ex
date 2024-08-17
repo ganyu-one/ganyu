@@ -11,19 +11,7 @@ defmodule Ganyu do
   def start(_type, _args) do
     Logger.info("Starting #{__MODULE__ |> to_string}...")
 
-    topologies = [
-      hop: [
-        strategy: ClusterHop.Strategy.Deployment,
-        config: [
-          hop_token: Application.get_env(:ganyu, :hop_token),
-          app_prefix:
-            __MODULE__ |> to_string |> String.split(".") |> List.last() |> String.downcase()
-        ]
-      ]
-    ]
-
     children = [
-      {Cluster.Supervisor, [topologies, [name: __MODULE__.ClusterSupervisor]]},
       {__MODULE__.Database.Postgres, get_db_config()},
       Plug.Cowboy.child_spec(
         scheme: :http,
