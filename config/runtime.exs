@@ -23,5 +23,12 @@ if config_env() == :prod do
       System.get_env(
         "GANYU_POSTGRES_DATABASE",
         "ganyu"
+      ),
+    postgres_port:
+      String.to_integer(
+        System.get_env(
+          "GANYU_POSTGRES_PORT",
+          "5432"
+        )
       )
 end

@@ -6,4 +6,5 @@ config :ganyu,
   postgres_hostname: "localhost",
   postgres_username: "postgres",
   postgres_password: "postgres",
-  postgres_database: "ganyu"
+  postgres_database: "ganyu",
+  postgres_port: 5432

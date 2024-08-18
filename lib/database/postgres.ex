@@ -17,14 +17,14 @@ defmodule Ganyu.Database.Postgres do
   end
 
   @impl true
-  def init([hostname, username, password, database, proxy_path]) do
+  def init([hostname, username, password, database, proxy_path, port]) do
     {:ok, client} =
       Postgrex.start_link(
         hostname: hostname,
         username: username,
         password: password,
         database: database,
-        port: 5432
+        port: port
       )
 
     client |> init_call()
