@@ -9,3 +9,4 @@ ganyu-*.tar
 /tmp/
 /.elixir_ls/
 /.vscode/
+/data/

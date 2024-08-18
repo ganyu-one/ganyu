@@ -89,7 +89,7 @@ defmodule Ganyu.Database.Postgres do
 
     Logger.info("Served image: \##{rows["id"]}")
 
-    Collector.inc_images_served(1)
+    Collector.inc_images_served(if rows != nil, do: 1, else: 0)
 
     # could possibly return nil? but shouldnt really
     rows |> normalize_image(proxy)
@@ -99,7 +99,13 @@ defmodule Ganyu.Database.Postgres do
   def select_by_idx(idx) do
     %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_by_id, idx})
 
-    Collector.inc_images_served(1)
+    Collector.inc_images_served(
+      if rows != nil,
+        do:
+          rows
+          |> Enum.count(),
+        else: 0
+    )
 
     rows |> normalize_image(proxy)
   end
@@ -108,7 +114,7 @@ defmodule Ganyu.Database.Postgres do
   def select_all(page) do
     %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_all, page})
 
-    Collector.inc_images_served(Enum.count(rows))
+    Collector.inc_images_served(rows |> Enum.count())
 
     rows
     |> Enum.map(&normalize_image(&1, proxy))
@@ -129,6 +135,8 @@ defmodule Ganyu.Database.Postgres do
       url: "#{proxy}/#{path}"
     }
   end
+
+  defp normalize_image(nil, _), do: nil
 
   defp result_to_maps(%Postgrex.Result{columns: _names, rows: nil}), do: []
 

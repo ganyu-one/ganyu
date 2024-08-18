@@ -35,29 +35,34 @@ defmodule Ganyu.Router do
   forward("/v1", to: V1)
 
   get "/" do
-    %{url: url, idx: idx} = Postgres.select_random()
-
-    %HTTPoison.Response{body: b, headers: h, status_code: s} =
-      HTTPoison.get!(
-        url,
-        [{"referer", "https://www.pixiv.net/"}]
-      )
-
-    case s do
-      200 ->
-        {_, content_type} =
-          h
-          |> Util.lower_headers()
-          |> List.keyfind("content-type", 0)
-
+    case Postgres.select_random() do
+      nil ->
         conn
-        |> put_resp_header("content-type", content_type)
-        |> put_resp_header("x-image-idx", idx |> to_string)
-        |> Util.respond({:ok, s, b})
+        |> Util.not_found()
 
-      _ ->
-        conn
-        |> Util.internal_error()
+      %{url: url, idx: idx} ->
+        %HTTPoison.Response{body: b, headers: h, status_code: s} =
+          HTTPoison.get!(
+            url,
+            [{"referer", "https://www.pixiv.net/"}]
+          )
+
+        case s do
+          200 ->
+            {_, content_type} =
+              h
+              |> Util.lower_headers()
+              |> List.keyfind("content-type", 0)
+
+            conn
+            |> put_resp_header("content-type", content_type)
+            |> put_resp_header("x-image-idx", idx |> to_string)
+            |> Util.respond({:ok, s, b})
+
+          _ ->
+            conn
+            |> Util.internal_error()
+        end
     end
   end
 
