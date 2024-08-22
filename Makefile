@@ -2,6 +2,7 @@ BUILD_ENV:=prod
 APP_NAME:=ganyu
 
 dev:
+	docker compose -f docker-compose.dev.yml up -d --wait
 	mix local.hex --force
 	mix local.rebar --force
 	mix deps.get
