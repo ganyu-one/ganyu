@@ -10,3 +10,4 @@ ganyu-*.tar
 /.elixir_ls/
 /.vscode/
 /data/
+.env

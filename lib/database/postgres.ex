@@ -18,6 +18,8 @@ defmodule Ganyu.Database.Postgres do
 
   @impl true
   def init([hostname, username, password, database, proxy_path, port]) do
+    Logger.info("Connecting to Postgres at #{hostname}:#{port}...")
+
     {:ok, client} =
       Postgrex.start_link(
         hostname: hostname,
@@ -35,7 +37,7 @@ defmodule Ganyu.Database.Postgres do
   defp init_call(client) do
     query = "CREATE TABLE IF NOT EXISTS images (id SERIAL PRIMARY KEY, url VARCHAR(255) NOT NULL)"
 
-    {:ok, _} = Postgrex.query(client, query, [])
+    {:ok, _} = Postgrex.query(client, query, [], timeout: :infinity)
   end
 
   @impl true

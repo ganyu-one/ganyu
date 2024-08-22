@@ -19,7 +19,7 @@ if config_env() == :prod do
         "GANYU_POSTGRES_PASSWORD",
         "postgres"
       ),
-    postres_database:
+    postgres_database:
       System.get_env(
         "GANYU_POSTGRES_DATABASE",
         "ganyu"
