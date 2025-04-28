@@ -1,17 +1,16 @@
 BUILD_ENV:=prod
 APP_NAME:=ganyu
 
-dev:
+dev: deps
 	docker compose -f docker-compose.dev.yml up -d --wait
-	mix local.hex --force
-	mix local.rebar --force
-	mix deps.get
 	iex -S mix
 
-build:
+deps:
 	mix local.hex --force
 	mix local.rebar --force
 	mix deps.get
+
+build: deps
 	MIX_ENV=${BUILD_ENV} mix compile
 	yes | MIX_ENV=${BUILD_ENV} mix release 
 

@@ -4,6 +4,7 @@ defmodule Ganyu.Util do
   """
 
   import Plug.Conn
+  import Jason
 
   require Logger
 
@@ -23,7 +24,7 @@ defmodule Ganyu.Util do
   def respond(conn, {:ok, data}) do
     conn
     |> put_resp_header("content-type", "application/json")
-    |> respond({:ok, 200, Poison.encode!(%{success: true, data: data})})
+    |> respond({:ok, 200, encode!(%{success: true, data: data})})
   end
 
   @spec respond(Plug.Conn.t(), {:error, integer}) :: Plug.Conn.t()
@@ -37,7 +38,7 @@ defmodule Ganyu.Util do
     |> put_resp_header("content-type", "application/json")
     |> respond(
       {:ok, status,
-       Poison.encode!(%{
+       encode!(%{
          success: false,
          data: nil,
          message: message
