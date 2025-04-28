@@ -20,11 +20,11 @@ defmodule Ganyu.MixProject do
 
   defp deps do
     [
-      {:plug_cowboy, "~> 2.0"},
-      {:poison, "~> 5.0"},
-      {:corsica, "~> 1.0"},
-      {:httpoison, "~> 1.8"},
-      {:postgrex, "~> 0.16.2"}
+      {:plug_cowboy, "2.5.0"},
+      {:jason, "1.4.0"},
+      {:corsica, "1.1.3"},
+      {:httpoison, "1.8.0"},
+      {:postgrex, "0.16.5"}
     ]
   end
 end
