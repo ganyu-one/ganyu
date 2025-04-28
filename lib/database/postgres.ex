@@ -85,7 +85,7 @@ defmodule Ganyu.Database.Postgres do
   end
 
   # public api with pretty formatting
-  @spec select_random :: %{id: String.t(), idx: integer(), url: String.t()}
+  @spec select_random :: %{id: String.t(), idx: integer(), url: String.t()} | nil
   def select_random() do
     %{rows: rows, proxy: proxy} = GenServer.call(@client, {:get_random})
 

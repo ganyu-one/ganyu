@@ -20,7 +20,7 @@ defmodule Ganyu.Util do
     conn |> respond({:ok, 204, ""})
   end
 
-  @spec respond(Plug.Conn.t(), {:ok, Poison.Encoder.t()}) :: Plug.Conn.t()
+  @spec respond(Plug.Conn.t(), {:ok, Jason.Encoder.t()}) :: Plug.Conn.t()
   def respond(conn, {:ok, data}) do
     conn
     |> put_resp_header("content-type", "application/json")
